@@ -7,23 +7,33 @@ import com.android.volley.toolbox.Volley
 import com.example.mvvm_example.MainApplication
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import java.lang.reflect.Type
 
 class ServerManager {
     companion object {
         val instance = ServerManager()
     }
 
-    val volleyQueue: RequestQueue by lazy {
+    private val volleyQueue: RequestQueue by lazy {
         Volley.newRequestQueue(
             MainApplication.appContext
         )
     }
 
-    inline fun <reified Res> request(endpoint: Endpoint, body: Map<String, String>? = null, callback: VolleyCallback<Res>) {
-        val req: StringRequest = object : StringRequest(endpoint.method, endpoint.url,
+    fun <Res> request(endpoint: Endpoint, body: Map<String, String>? = null, out: Type, overloads: Map<String, String> = HashMap(), callback: VolleyCallback<Res>) {
+        var urlWithParams = endpoint.url
+        if (overloads.isNotEmpty()) {
+            overloads.forEach { param ->
+                urlWithParams = urlWithParams.replace(
+                    "{%s}".format(param.key), param.value
+                )
+            }
+        }
+
+        val req: StringRequest = object : StringRequest(endpoint.method, urlWithParams,
             { response ->
                 try {
-                    val deserializedResponse = Gson().fromJson(response, Res::class.java)
+                    val deserializedResponse = Gson().fromJson<Res>(response, out)
                     callback.onSuccess(deserializedResponse)
                 } catch (ex: JsonSyntaxException) {
                     callback.onFail(VolleyError("Couldn't deserialize response"))

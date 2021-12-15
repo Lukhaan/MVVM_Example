@@ -9,7 +9,6 @@ import android.widget.AdapterView.OnItemClickListener
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mvvm_example.R
@@ -32,7 +31,8 @@ class PostsActivity : AppCompatActivity() {
         })
 
         viewModel.detailedPost.observe(this, { post ->
-            Toast.makeText(this, post.content, Toast.LENGTH_SHORT).show()
+            val postPopupModal = PostPopupModal(post.title, post.content)
+            postPopupModal.show(supportFragmentManager, PostPopupModal.TAG)
         })
 
         setContentView(R.layout.activity_main)

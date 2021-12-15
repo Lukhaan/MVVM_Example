@@ -61,8 +61,10 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
                         CommentViewModel(it.id, it.name, it.email, it.body)
                     }
 
-                    posts.value?.get(postId)?.comments = comments
-                    detailedPost.postValue(posts.value?.get(postId))
+                    posts.value?.indexOfFirst { it.id == postId }?.let {
+                        posts.value?.get(it)?.comments = comments
+                        detailedPost.postValue(posts.value?.get(it))
+                    }
                 }
 
                 override fun onFail(error: VolleyError) {

@@ -31,7 +31,7 @@ class PostsActivity : AppCompatActivity() {
         })
 
         viewModel.detailedPost.observe(this, { post ->
-            val postPopupModal = PostPopupModal(post.title, post.content)
+            val postPopupModal = PostPopupModal(post)
             postPopupModal.show(supportFragmentManager, PostPopupModal.TAG)
         })
 

@@ -5,11 +5,13 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.android.volley.VolleyError
+import com.example.mvvm_example.MainApplication
 import com.example.mvvm_example.model.Comment
 import com.example.mvvm_example.model.Post
 import com.example.mvvm_example.util.Endpoint
 import com.example.mvvm_example.util.ServerManager
 import com.example.mvvm_example.util.VolleyCallback
+import kotlinx.coroutines.*
 import java.util.ArrayList
 
 sealed class PostEvent {
@@ -25,53 +27,89 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
     fun handleEvent(event: PostEvent) {
         when(event) {
             is PostEvent.GetPosts -> getPosts()
-            is PostEvent.GetComments -> getComments(event.postId)
+            is PostEvent.GetComments -> runBlocking { launch { getComments(event.postId) } }
+        }
+    }
+
+    private fun mapPostModelToViewModel(posts: Array<Post>): List<PostViewModel> {
+        return posts.map {
+            PostViewModel(it.id, it.title, it.body, ArrayList())
+        }
+    }
+
+    private fun mapCommentModelToViewModel(comments: Array<Comment>): List<CommentViewModel> {
+        return comments.map {
+            CommentViewModel(it.id, it.name, it.email, it.body)
         }
     }
 
     private fun getPosts() {
-        ServerManager.instance.request(
-            Endpoint.GetPosts,
-            null,
-            Array<Post>::class.java,
-            callback = object : VolleyCallback<Array<Post>> {
-                override fun onSuccess(result: Array<Post>) {
-                    posts.postValue(result.map {
-                        PostViewModel(it.id, it.title, it.body, ArrayList())
-                    })
-                }
+        //If we already have the data use that otherwise request from server
+        CoroutineScope(Dispatchers.IO).launch {
+            val mPosts = MainApplication.postDatabase.dao().query()
 
-                override fun onFail(error: VolleyError) {
-                    errorMessage.postValue(error.message)
-                    Log.e("Server Request Failed", error.message!!)
-                }
+            if (mPosts.isNotEmpty()) {
+                posts.postValue(mapPostModelToViewModel(mPosts))
+            } else {
+                ServerManager.instance.request(
+                    Endpoint.GetPosts,
+                    null,
+                    Array<Post>::class.java,
+                    callback = object : VolleyCallback<Array<Post>> {
+                        override fun onSuccess(result: Array<Post>) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                result.forEach { MainApplication.postDatabase.dao().insert(it) }
+                            }
+                            posts.postValue(mapPostModelToViewModel(result))
+                        }
+
+                        override fun onFail(error: VolleyError) {
+                            errorMessage.postValue(error.message)
+                            Log.e("Server Request Failed", error.message!!)
+                        }
+                    }
+                )
             }
-        )
+        }
     }
 
     private fun getComments(postId: Int) {
-        ServerManager.instance.request(
-            Endpoint.GetComments,
-            null,
-            Array<Comment>::class.java,
-            overloads = hashMapOf("postId" to postId.toString()),
-            object : VolleyCallback<Array<Comment>> {
-                override fun onSuccess(result: Array<Comment>) {
-                    val comments = result.map {
-                        CommentViewModel(it.id, it.name, it.email, it.body)
-                    }
+        CoroutineScope(Dispatchers.IO).launch {
+            val mComments = MainApplication.commentDatabase.dao().query(postId)
 
-                    posts.value?.indexOfFirst { it.id == postId }?.let {
-                        posts.value?.get(it)?.comments = comments
-                        detailedPost.postValue(posts.value?.get(it))
-                    }
-                }
+            if(mComments.isNotEmpty()) {
+                val comments = mapCommentModelToViewModel(mComments)
 
-                override fun onFail(error: VolleyError) {
-                    errorMessage.postValue(error.message)
-                    Log.e("Server Request Failed", error.message!!)
-                }
-            })
+                addCommentsToPostViewModel(postId, comments)
+            } else {
+                ServerManager.instance.request(
+                    Endpoint.GetComments,
+                    null,
+                    Array<Comment>::class.java,
+                    overloads = hashMapOf("postId" to postId.toString()),
+                    object : VolleyCallback<Array<Comment>> {
+                        override fun onSuccess(result: Array<Comment>) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                result.forEach { MainApplication.commentDatabase.dao().insert(it) }
+                            }
+                            addCommentsToPostViewModel(postId, mapCommentModelToViewModel(result))
+                        }
+
+                        override fun onFail(error: VolleyError) {
+                            errorMessage.postValue(error.message)
+                            Log.e("Server Request Failed", error.message!!)
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    private fun addCommentsToPostViewModel(postId: Int, comments: List<CommentViewModel>) {
+        posts.value?.indexOfFirst { it.id == postId }?.let {
+            posts.value?.get(it)?.comments = comments
+            detailedPost.postValue(posts.value?.get(it))
+        }
     }
 }
 

@@ -19,7 +19,7 @@ class Comment(
 
 @Dao
 interface CommentDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(comment: Comment)
     @Query("Select * from comments where postId = :postId")
     suspend fun query(postId: Int): Array<Comment>

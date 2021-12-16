@@ -19,7 +19,7 @@ data class Post(
 
 @Dao
 interface PostDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(post: Post)
 
     @Query("Select * from posts")

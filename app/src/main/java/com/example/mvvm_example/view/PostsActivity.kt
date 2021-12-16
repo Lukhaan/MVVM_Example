@@ -5,16 +5,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
-import android.widget.BaseAdapter
-import android.widget.ListView
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import com.example.mvvm_example.R
 import com.example.mvvm_example.viewmodel.PostEvent
 import com.example.mvvm_example.viewmodel.PostViewModel
 import com.example.mvvm_example.viewmodel.PostsActivityViewModel
+import java.util.*
 
 
 class PostsActivity : AppCompatActivity() {
@@ -24,9 +24,13 @@ class PostsActivity : AppCompatActivity() {
 
         viewModel.posts.observe(this, { posts ->
             val mListView = findViewById<ListView>(R.id.post_list_view)
+            val mSearchTextView = findViewById<EditText>(R.id.post_list_search)
             mListView.adapter = PostAdapter(this, posts)
             mListView.onItemClickListener = OnItemClickListener { _, _, _, id ->
                 viewModel.handleEvent(PostEvent.GetComments(id.toInt()))
+            }
+            mSearchTextView.addTextChangedListener {
+                (mListView.adapter as PostAdapter).filter.filter(it)
             }
         })
 
@@ -35,15 +39,17 @@ class PostsActivity : AppCompatActivity() {
             postPopupModal.show(supportFragmentManager, PostPopupModal.TAG)
         })
 
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_posts)
+
         viewModel.handleEvent(PostEvent.GetPosts)
     }
 
-    class PostAdapter(context: Context, private val dataSource: List<PostViewModel>) : BaseAdapter() {
+    private class PostAdapter(context: Context, private var dataSource: List<PostViewModel>) : BaseAdapter(), Filterable {
         data class ViewHolder(
             val titleTextView: TextView
         )
 
+        private val initialData = dataSource
         private val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
@@ -76,6 +82,37 @@ class PostsActivity : AppCompatActivity() {
 
         override fun getItemId(position: Int): Long {
             return dataSource[position].id.toLong()
+        }
+
+        override fun getFilter(): Filter {
+            return object : Filter() {
+                override fun performFiltering(constraint: CharSequence?): FilterResults {
+                    val results = FilterResults()
+
+                    if(constraint.isNullOrEmpty()) {
+                        results.count = initialData.size
+                        results.values = initialData
+                        return results
+                    } else {
+                        val filteredResults: ArrayList<PostViewModel> = ArrayList()
+
+                        for (i in initialData.indices) {
+                            if (initialData[i].title.contains(constraint, true)) {
+                                filteredResults.add(initialData[i])
+                            }
+                        }
+                        results.count = filteredResults.size
+                        results.values = filteredResults
+                    }
+
+                    return results
+                }
+
+                override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                    dataSource = results?.values as List<PostViewModel>
+                    notifyDataSetChanged()
+                }
+            }
         }
     }
 }

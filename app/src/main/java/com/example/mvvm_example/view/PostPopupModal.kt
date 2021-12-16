@@ -6,9 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.EditText
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import com.example.mvvm_example.R
 import com.example.mvvm_example.viewmodel.CommentViewModel
 import com.example.mvvm_example.viewmodel.PostViewModel
@@ -22,7 +24,7 @@ class PostPopupModal(
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.post_popup_modal, container, false)
+        val view = inflater.inflate(R.layout.modal_popup_post, container, false)
         view.findViewById<TextView>(R.id.post_popup_title).text = post.title
         view.findViewById<TextView>(R.id.post_popup_content).text = post.content
         view.findViewById<ListView>(R.id.post_popup_list_view).adapter = CommentAdapter(view.context, post.comments)

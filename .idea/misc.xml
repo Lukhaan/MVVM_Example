@@ -9,6 +9,7 @@
         <entry key="app/src/main/res/layout/activity_posts.xml" value="0.32760416666666664" />
         <entry key="app/src/main/res/layout/list_item_popup_post.xml" value="0.3880208333333333" />
         <entry key="app/src/main/res/layout/list_item_post.xml" value="0.14479166666666668" />
+        <entry key="app/src/main/res/layout/modal_popup_header.xml" value="0.3375" />
         <entry key="app/src/main/res/layout/modal_popup_post.xml" value="0.38813405797101447" />
         <entry key="app/src/main/res/layout/post_popup_modal.xml" value="0.3380208333333333" />
       </map>

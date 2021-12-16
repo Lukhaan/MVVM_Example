@@ -20,9 +20,9 @@ class Comment(
 @Dao
 interface CommentDao {
     @Insert
-    fun insert(comment: Comment)
+    suspend fun insert(comment: Comment)
     @Query("Select * from comments where postId = :postId")
-    fun query(postId: Int): Array<Comment>
+    suspend fun query(postId: Int): Array<Comment>
 }
 
 @Database(entities = [Comment::class], version = 1, exportSchema = false)

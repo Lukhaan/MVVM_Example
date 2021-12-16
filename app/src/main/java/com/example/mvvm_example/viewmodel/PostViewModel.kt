@@ -10,6 +10,5 @@ class PostViewModel(
 class CommentViewModel(
     val id: Int,
     val title: String,
-    val email: String,
     val content: String,
 )

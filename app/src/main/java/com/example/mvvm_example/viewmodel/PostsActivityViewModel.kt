@@ -27,7 +27,7 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
     fun handleEvent(event: PostEvent) {
         when(event) {
             is PostEvent.GetPosts -> getPosts()
-            is PostEvent.GetComments -> runBlocking { launch { getComments(event.postId) } }
+            is PostEvent.GetComments -> getComments(event.postId)
         }
     }
 
@@ -39,7 +39,7 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
 
     private fun mapCommentModelToViewModel(comments: Array<Comment>): List<CommentViewModel> {
         return comments.map {
-            CommentViewModel(it.id, it.name, it.email, it.body)
+            CommentViewModel(it.id, it.email, it.body)
         }
     }
 
@@ -79,7 +79,6 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
 
             if(mComments.isNotEmpty()) {
                 val comments = mapCommentModelToViewModel(mComments)
-
                 addCommentsToPostViewModel(postId, comments)
             } else {
                 ServerManager.instance.request(

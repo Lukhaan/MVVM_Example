@@ -1,5 +1,4 @@
 package com.example.mvvm_example.util
-
 import com.android.volley.Request
 
 enum class Endpoint(val method: Int, val url: String) {

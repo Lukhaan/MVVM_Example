@@ -10,7 +10,7 @@ import com.example.mvvm_example.model.Comment
 import com.example.mvvm_example.model.Post
 import com.example.mvvm_example.util.Endpoint
 import com.example.mvvm_example.util.ServerManager
-import com.example.mvvm_example.util.VolleyCallback
+import com.example.mvvm_example.util.ServerResponse
 import kotlinx.coroutines.*
 import java.util.ArrayList
 import kotlin.coroutines.CoroutineContext
@@ -56,7 +56,7 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
                 Endpoint.GetPosts,
                 null,
                 Array<Post>::class.java,
-                callback = object : VolleyCallback<Array<Post>> {
+                callback = object : ServerResponse<Array<Post>> {
                     override fun onSuccess(result: Array<Post>) {
                         //Dispatch database operation to async IO thread for better performance
                         CoroutineScope(Dispatchers.IO).launch {
@@ -87,7 +87,7 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
                 null,
                 Array<Comment>::class.java,
                 overloads = hashMapOf("postId" to postId.toString()),
-                object : VolleyCallback<Array<Comment>> {
+                object : ServerResponse<Array<Comment>> {
                     override fun onSuccess(result: Array<Comment>) {
                         //Dispatch database operation to async IO thread for better performance
                         CoroutineScope(Dispatchers.IO).launch {

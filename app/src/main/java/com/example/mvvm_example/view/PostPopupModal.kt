@@ -14,14 +14,8 @@ import com.example.mvvm_example.viewmodel.CommentViewModel
 import com.example.mvvm_example.viewmodel.PostViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class PostPopupModal(
-    private val post: PostViewModel
-) : BottomSheetDialogFragment() {
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+class PostPopupModal(private val post: PostViewModel) : BottomSheetDialogFragment() {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.modal_popup_post, container, false)
         val headerView = inflater.inflate(R.layout.modal_popup_header, container, false)
         headerView.findViewById<TextView>(R.id.post_popup_title).text = post.title
@@ -37,12 +31,8 @@ class PostPopupModal(
         const val TAG = "PostPopupModal"
     }
 
-    class CommentAdapter(context: Context, private val dataSource: List<CommentViewModel>) : BaseAdapter() {
-        data class ViewHolder(
-            val titleTextView: TextView,
-            val contentTextView: TextView,
-        )
-
+    private class CommentAdapter(context: Context, private val dataSource: List<CommentViewModel>) : BaseAdapter() {
+        private data class ViewHolder(val titleTextView: TextView, val contentTextView: TextView, )
         private val inflater = context.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {

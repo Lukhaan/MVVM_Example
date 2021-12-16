@@ -20,17 +20,17 @@ class ServerManager {
         )
     }
 
-    fun <Res> request(endpoint: Endpoint, body: Map<String, String>? = null, out: Type, overloads: Map<String, String> = HashMap(), callback: VolleyCallback<Res>) {
-        var urlWithParams = endpoint.url
-        if (overloads.isNotEmpty()) {
-            overloads.forEach { param ->
-                urlWithParams = urlWithParams.replace(
-                    "{%s}".format(param.key), param.value
-                )
-            }
+    private fun buildUri(endpoint: Endpoint, overloads: Map<String, String>): String {
+        overloads.forEach { param ->
+            endpoint.url.replace(
+                "{%s}".format(param.key), param.value
+            )
         }
+        return endpoint.url
+    }
 
-        val req: StringRequest = object : StringRequest(endpoint.method, urlWithParams,
+    fun <Res> request(endpoint: Endpoint, body: Map<String, String>? = null, out: Type, overloads: Map<String, String> = HashMap(), callback: ServerResponse<Res>) {
+        val req: StringRequest = object : StringRequest(endpoint.method, buildUri(endpoint, overloads),
             { response ->
                 try {
                     val deserializedResponse = Gson().fromJson<Res>(response, out)

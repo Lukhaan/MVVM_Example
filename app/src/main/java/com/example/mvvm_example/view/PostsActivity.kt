@@ -39,15 +39,16 @@ class PostsActivity : AppCompatActivity() {
             postPopupModal.show(supportFragmentManager, PostPopupModal.TAG)
         })
 
-        setContentView(R.layout.activity_posts)
+        viewModel.errorMessage.observe(this, { err ->
+            Toast.makeText(this, err.toString(), Toast.LENGTH_LONG).show()
+        })
 
+        setContentView(R.layout.activity_posts)
         viewModel.handleEvent(PostEvent.GetPosts)
     }
 
     private class PostAdapter(context: Context, private var dataSource: List<PostViewModel>) : BaseAdapter(), Filterable {
-        data class ViewHolder(
-            val titleTextView: TextView
-        )
+        private data class ViewHolder(val titleTextView: TextView)
 
         private val initialData = dataSource
         private val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater

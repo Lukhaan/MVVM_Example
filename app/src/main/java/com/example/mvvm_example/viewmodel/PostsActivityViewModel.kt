@@ -30,7 +30,7 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
     fun handleEvent(event: PostEvent) {
         when(event) {
             is PostEvent.GetPosts -> getPosts()
-            is PostEvent.GetComments -> getComments(event.postId)
+            is PostEvent.GetComments -> getDetails(event.postId)
         }
     }
 
@@ -74,7 +74,7 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
-    private fun getComments(postId: Int) = launch {
+    private fun getDetails(postId: Int) = launch {
         //If we already have the data use that otherwise request from server
         val mComments = MainApplication.commentDatabase.dao().query(postId)
 
@@ -91,7 +91,9 @@ class PostsActivityViewModel(application: Application) : AndroidViewModel(applic
                     override fun onSuccess(result: Array<Comment>) {
                         //Dispatch database operation to async IO thread for better performance
                         CoroutineScope(Dispatchers.IO).launch {
-                            result.forEach { MainApplication.commentDatabase.dao().insert(it) }
+                            result.forEach {
+                                MainApplication.commentDatabase.dao().insert(it)
+                            }
                         }
                         addCommentsToPostViewModel(postId, mapCommentModelToViewModel(result))
                     }

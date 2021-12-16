@@ -21,12 +21,11 @@ class ServerManager {
     }
 
     private fun buildUri(endpoint: Endpoint, overloads: Map<String, String>): String {
+        var url = endpoint.url
         overloads.forEach { param ->
-            endpoint.url.replace(
-                "{%s}".format(param.key), param.value
-            )
+            url = url.replace("{%s}".format(param.key), param.value)
         }
-        return endpoint.url
+        return url
     }
 
     fun <Res> request(endpoint: Endpoint, body: Map<String, String>? = null, out: Type, overloads: Map<String, String> = HashMap(), callback: ServerResponse<Res>) {
